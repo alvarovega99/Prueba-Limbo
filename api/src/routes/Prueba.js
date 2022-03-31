@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const axios = require('axios')
 const ccxt = require('ccxt')
+// eslint-disable-next-line new-cap
 const kraken = new ccxt.kraken()
 const Compras = require('../models/Compras')
 const Ventas = require('../models/Ventas')
