@@ -11,8 +11,7 @@ const Ventas = new Schema({
   },
   max: String,
   date: {
-    type: Date,
-    default: Date.now
+    type: Number
   }
 }
 )

@@ -24,3 +24,5 @@ const job = new CronJob('4 * * * * *', async function () {
   console.log(resCompras.data)
 })
 job.start()
+
+console.log(Math.round(new Date().getTime() / 1000).toString(), 'Iniciando el cron')
