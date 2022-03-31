@@ -3,39 +3,84 @@ const router = express.Router()
 const axios = require('axios')
 const ccxt = require('ccxt')
 const kraken = new ccxt.kraken()
-router.get('/ventas', async (req, res) => {
+const Compras = require('../models/Compras')
+const Ventas = require('../models/Ventas')
+router.get('/actualizarVentas', async (req, res) => {
   const precioUsd = await kraken.fetchTicker('BTC/USD')
   try {
     const ventas = await axios.get('https://localbitcoins.com/sell-bitcoins-online/cop/.json')
-    const ventasMostrar = ventas.data.data.ad_list.map(venta => {
-      const obj = {
-        name: venta.data.profile.username,
-        precio: venta.data.temp_price / precioUsd.bid,
-        max: new Intl.NumberFormat('de-DE').format(venta.data.max_amount)
+    ventas.data.data.ad_list.map(async (venta) => {
+      const validar = await Ventas.find({ idVenta: venta.data.ad_id })
+      if (validar.length === 0) {
+        const obj = new Ventas({
+          idVenta: venta.data.ad_id,
+          name: venta.data.profile.username,
+          price: venta.data.temp_price / precioUsd.bid,
+          max: new Intl.NumberFormat('de-DE').format(venta.data.max_amount)
+        })
+        obj.save()
+        return obj
+      } else {
+        return venta
       }
-      return obj
     })
-    res.status(200).json(ventasMostrar)
+
+    res.status(200).json('Ventas actualizadas')
   } catch (err) {
     res.send(err.message)
   }
 })
-router.get('/compras', async (req, res) => {
+
+router.get('/actualizarCompras', async (req, res) => {
   const precioUsd = await kraken.fetchTicker('BTC/USD')
   try {
     const compras = await axios.get('https://localbitcoins.com/buy-bitcoins-online/cop/.json')
     /* const comprasCop = compras.data.data.ad_list.filter(compra => compra.data.currency === 'COP') */
-    const comprasMostrar = compras.data.data.ad_list.map(compra => {
-      const obj = {
-        name: compra.data.profile.username,
-        precio: compra.data.temp_price / precioUsd.bid,
-        max: new Intl.NumberFormat('de-DE').format(compra.data.max_amount)
+    compras.data.data.ad_list.map(async (compra) => {
+      const validar = await Compras.find({ idCompra: compra.data.ad_id })
+
+      if (validar.length === 0) {
+        const obj = new Compras({
+          idCompra: compra.data.ad_id,
+          name: compra.data.profile.username,
+          price: compra.data.temp_price / precioUsd.bid,
+          max: new Intl.NumberFormat('de-DE').format(compra.data.max_amount)
+        })
+        obj.save()
+        return obj
+      } else {
+        return compra
       }
-      return obj
     })
-    res.status(200).json(comprasMostrar)
+
+    res.status(200).json('Compras actualizadas')
   } catch (err) {
     res.send(err.message)
   }
 })
+router.get('/ventas', async (req, res) => {
+  try {
+    const ventas = await Ventas.find()
+    res.status(200).json({
+      ventas
+    })
+  } catch (error) {
+    res.status(500).send({
+      error
+    })
+  }
+})
+router.get('/compras', async (req, res) => {
+  try {
+    const compras = await Compras.find()
+    res.status(200).json({
+      compras
+    })
+  } catch (error) {
+    res.status(500).send({
+      error
+    })
+  }
+})
+
 module.exports = router
